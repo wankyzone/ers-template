@@ -4,6 +4,8 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
+		"db:migrate": "supabase db push --db-url $DATABASE_url",
+		"db:seed": "node ers-cilent/packages/backend/scripts/seed.js",
 		"dev": "ts-node-dev --respawn --transpile-only src/index.ts",
 		"build": "tsc",
 		"lint": "biome lint .",
