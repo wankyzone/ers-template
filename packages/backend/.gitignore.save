@@ -22,4 +22,4 @@ yarn-error.log*
 
 # TypeScript
 *.tsbuildinfo
-.env
+
