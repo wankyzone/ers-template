@@ -1,25 +1,31 @@
 {
   "name": "@ers/backend",
-  "version": "0.1.0",
-  "main": "dist/index.js",
+  "version": "1.0.0",
+  "private": true,
   "scripts": {
-  "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-
-  "db:migrate": "dotenv -e .env -- supabase db push --db-url $DATABASE_URL",
-  "db:seed": "dotenv -e .env -- node scripts/seed.js",
-
-  "test": "jest --runInBand",
-  "lint": "eslint . --ext .ts,.tsx",
-  "format": "prettier --write .",
-  "format:check": "prettier --check ."
-   },
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "db:migrrate": "bash ./scripts/db-migrate.sh",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
   "dependencies": {
-    "@supabase/supabase-js": "^2.43.5",
+    "@supabase/supabase-js": "^2.45.4",
+    "axios": "^1.7.2",
+    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.18.2"
+    "express": "^4.21.1",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.12.0"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/bcryptjs": "^3.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.12.7",
+    "eslint": "^9.6.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.3.3"
   }
