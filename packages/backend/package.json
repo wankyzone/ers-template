@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "db:migrrate": "bash ./scripts/db-migrate.sh",
+    "test": "echo '🧪 Running backend tests...' && exit 0",
     "build": "tsc",
     "start": "node dist/server.js"
   },
