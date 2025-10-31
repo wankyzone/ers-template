@@ -1,0 +1,64 @@
+name: Preview Deploy (Ephemeral Supabase Branch + Vercel)
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+    branches-ignore:
+      - main
+
+jobs:
+  preview:
+    if: github.event.action != 'closed' && github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    name: Deploy Preview (PR #${{ github.event.pull_request.number }})
+
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_ORG: "Wanky Technologies Ltd"
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+    steps:
+      - name: 🧩 Checkout code
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup PNPM
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: 🧱 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🚀 Create ephemeral Supabase branch
+        run: |
+          BRANCH_NAME="preview-pr-${{ github.event.pull_request.number }}"
+          supabase db branch create "$BRANCH_NAME" --org "$SUPABASE_ORG" --project-ref "$SUPABASE_PROJECT_REF"
+          supabase db push --db-url "$DATABASE_URL"
+
+      - name: 🧪 Run backend tests
+        run: pnpm test --filter backend
+
+      - name: 🌐 Deploy to Vercel (Preview)
+        run: |
+          vercel pull --yes --environment=preview --token=$VERCEL_TOKEN
+          vercel deploy --prebuilt --token=$VERCEL_TOKEN --yes --env SUPABASE_BRANCH="preview-pr-${{ github.event.pull_request.number }}"
+
+  cleanup:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    name: Cleanup Preview Environment
+
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_ORG: "Wanky Technologies Ltd"
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+
+    steps:
+      - name: 🧹 Delete Supabase preview branch
+        run: |
+          BRANCH_NAME="preview-pr-${{ github.event.pull_request.number }}"
+          supabase db branch delete "$BRANCH_NAME" --org "$SUPABASE_ORG" --project-ref "$SUPABASE_PROJECT_REF" --yes
