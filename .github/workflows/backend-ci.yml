@@ -6,43 +6,37 @@ on:
   pull_request:
 
 jobs:
-  backend:
+  build:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U postgres"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
-    env:
-      CI: true
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           version: 9
+          run_install: false
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run database migrations
-        working-directory: packages/backend
-        run: pnpm db:migrate
+      - name: Install dependencies with retry
+        run: |
+          echo "🔁 Installing dependencies with retry logic..."
+          n=0
+          until [ $n -ge 3 ]
+          do
+            pnpm install && break
+            n=$((n+1))
+            echo "Retrying ($n/3) after failure..."
+            sleep 5
+          done
 
       - name: Run tests
-        working-directory: packages/backend
         run: pnpm test
+
+      - name: Build backend
+        run: pnpm build

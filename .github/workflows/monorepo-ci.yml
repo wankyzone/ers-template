@@ -1,0 +1,14 @@
+# .github/workflows/monorepo-ci.yml
+name: Monorepo CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger all pipelines
+        run: echo "CI workflows for backend, client, and admin will auto-run via independent triggers."

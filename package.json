@@ -1,37 +1,25 @@
 {
-	"name": "ers",
-	"private": true,
-	"version": "1.0.0",
-	"workspaces": [
-		"packages/*"
-	],
-	"scripts": {
-		"dev": "pnpm --filter backend dev",
-		"build": "pnpm --filter backend build",
-		"start": "pnpm --filter backend start"
-	},
-	"dependencies": {
-		"@supabase/supabase-js": "^2.75.1",
-		"axios": "^1.12.2",
-		"bcrypt": "^6.0.0",
-		"bullmq": "^5.61.0",
-		"cors": "^2.8.5",
-		"express": "^4.21.2",
-		"helmet": "^8.1.0",
-		"jsonwebtoken": "^9.0.2",
-		"pg": "^8.16.3",
-		"socket.io": "^4.8.1",
-		"winston": "^3.18.3",
-		"zod": "^4.1.12"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "^2.2.6",
-		"@types/cors": "^2.8.19",
-		"@types/express": "^5.0.3",
-		"@types/jsonwebtoken": "^9.0.10",
-		"@types/node": "^24.8.1",
-		"dotenv": "^17.2.3",
-		"ts-node-dev": "^2.0.0",
-		"typescript": "^5.9.3"
-	}
+  "name": "ers-client",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "packages/backend",
+    "packages/client/packages/admin"
+  ],
+  "scripts": {
+    "dev:backend": "pnpm --filter @ers/backend dev",
+    "dev:admin": "pnpm --filter @ers/admin dev",
+    "dev:all": "concurrently \"pnpm dev:backend\" \"pnpm dev:admin\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0",
+    "cross-env": "^10.1.0",
+    "supertest": "^7.1.4",
+    "vitest": "^4.0.6",
+    "pnpm": {
+      "overrides": {
+        "ioredis": "5.8.2"
+      }
+    }
+  }
 }

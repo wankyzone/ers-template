@@ -1,0 +1,80 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/backend/**"
+      - "supabase/migrations/**"
+      - ".github/workflows/deploy.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+    steps:
+      - name: 🕓 Capture Start Time
+        id: start
+        run: echo "time=$(date +%s)" >> $GITHUB_OUTPUT
+
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Apply Supabase Migrations
+        run: pnpm --filter backend db:migrate
+
+      - name: 🔄 Refresh Analytics View
+        run: |
+          pnpm supabase db query "do $$ begin if to_regclass('public.notification_stats_view') is not null then call public.refresh_notification_stats_view(); end if; end $$;"
+
+      - name: 🚀 Deploy Supabase Edge Functions
+        run: pnpm supabase functions deploy --project-ref $SUPABASE_PROJECT_REF
+
+      - name: ✅ Log Successful Deployment
+        if: success()
+        run: |
+          DURATION=$(( $(date +%s) - ${{ steps.start.outputs.time }} ))
+          curl -X POST "https://${{ env.SUPABASE_PROJECT_REF }}.supabase.co/rest/v1/system_logs" \
+            -H "apikey: ${{ env.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ env.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"event\": \"Backend Deploy\", \"status\": \"success\", \"details\": \"Migrations + view refresh completed.\", \"run_id\": \"${{ github.run_id }}\", \"duration_seconds\": $DURATION, \"metadata\": {\"commit\": \"${{ github.sha }}\", \"branch\": \"${{ github.ref_name }}\", \"actor\": \"${{ github.actor }}\"}}"
+
+      - name: ❌ Log Failed Deployment
+        if: failure()
+        run: |
+          DURATION=$(( $(date +%s) - ${{ steps.start.outputs.time }} ))
+          curl -X POST "https://${{ env.SUPABASE_PROJECT_REF }}.supabase.co/rest/v1/system_logs" \
+            -H "apikey: ${{ env.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ env.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"event\": \"Backend Deploy\", \"status\": \"failed\", \"details\": \"Deployment pipeline failed.\", \"run_id\": \"${{ github.run_id }}\", \"duration_seconds\": $DURATION, \"metadata\": {\"commit\": \"${{ github.sha }}\", \"branch\": \"${{ github.ref_name }}\", \"actor\": \"${{ github.actor }}\"}}"

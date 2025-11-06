@@ -1,0 +1,114 @@
+name: Supabase Edge Functions Deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'packages/backend/**'
+      - '.github/workflows/backend-deploy.yml'
+  pull_request:
+    paths:
+      - 'packages/backend/**'
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link to Supabase Project
+        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Run Pre-Deploy Database Migrations
+        run: supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Supabase Edge Functions
+        run: supabase functions deploy backend
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+  preview:
+    if: github.event_name == 'pull_request'
+    name: Deploy Preview Environment
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Create Supabase Preview Environment
+        id: preview
+        run: |
+          supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          PREVIEW_ID=$(supabase projects create "preview-${{ github.event.pull_request.number }}" --org-id ${{ secrets.SUPABASE_ORG_ID }} --region eu-west-1 --db-password "tempPass123!" | jq -r '.ref')
+          echo "PREVIEW_PROJECT_REF=$PREVIEW_ID" >> $GITHUB_ENV
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Push Migrations to Preview DB
+        run: supabase db push --project-ref ${{ env.PREVIEW_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Functions to Preview
+        run: supabase functions deploy backend --project-ref ${{ env.PREVIEW_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Comment Preview Link on PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          message: |
+            🚀 **Supabase Preview Deployed!**
+            Project: `${{ env.PREVIEW_PROJECT_REF }}`
+            Function: [View Logs & Test → Supabase Dashboard](https://supabase.com/dashboard/project/${{ env.PREVIEW_PROJECT_REF }}/functions/backend)

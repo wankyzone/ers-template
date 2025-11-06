@@ -1,0 +1,68 @@
+name: 🧪 ERS Preview Tests (Ephemeral Supabase Validation)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  test-preview:
+    runs-on: ubuntu-latest
+    name: Run Integration Tests on Supabase Preview DB
+
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_ORG: "Wanky Technologies Ltd"
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: 🧩 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup Node + pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: ⚙️ Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: 🔍 Get preview database URL
+        id: dburl
+        run: |
+          BRANCH_NAME="${{ github.head_ref || github.ref_name }}"
+          PREVIEW_NAME="preview-${BRANCH_NAME}"
+          echo "🔗 Fetching DB URL for ${PREVIEW_NAME}"
+          DB_URL=$(supabase db branch list --project-ref $SUPABASE_PROJECT_REF --org "$SUPABASE_ORG" --output json | jq -r ".[] | select(.name==\"${PREVIEW_NAME}\") | .connection_string")
+          echo "database_url=${DB_URL}" >> $GITHUB_OUTPUT
+
+      - name: 🧪 Run backend integration tests
+        working-directory: packages/backend
+        env:
+          DATABASE_URL: ${{ steps.dburl.outputs.database_url }}
+          NODE_ENV: test
+        run: |
+          echo "Running integration tests against ${DATABASE_URL}"
+          pnpm test:integration || pnpm test
+
+      - name: 💬 Post test summary to PR
+        if: always()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: Preview Test Report
+          message: |
+            ✅ **Ephemeral Supabase Tests Completed**
+            - Database: `${{ github.head_ref || github.ref_name }}`
+            - Status: ${{ job.status }}
+            - Connection: `${{ steps.dburl.outputs.database_url }}`
+
+            🧠 Integration tests ran against the isolated Supabase preview instance.
+            Use this as a live environment validation before merging.

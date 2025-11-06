@@ -47,7 +47,7 @@ jobs:
           vercel pull --yes --environment=preview --token=$VERCEL_TOKEN
           vercel deploy --prebuilt --token=$VERCEL_TOKEN --yes --env SUPABASE_BRANCH="preview-pr-${{ github.event.pull_request.number }}"
 
-  cleanup:
+   cleanup:
     if: github.event.action == 'closed'
     runs-on: ubuntu-latest
     name: Cleanup Preview Environment
@@ -58,7 +58,9 @@ jobs:
       SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
 
     steps:
-      - name: 🧹 Delete Supabase preview branch
+      - name: 🧹 Attempt to delete Supabase preview branch
+        continue-on-error: true
         run: |
           BRANCH_NAME="preview-pr-${{ github.event.pull_request.number }}"
-          supabase db branch delete "$BRANCH_NAME" --org "$SUPABASE_ORG" --project-ref "$SUPABASE_PROJECT_REF" --yes
+          echo "🗑️ Attempting to delete Supabase branch: $BRANCH_NAME"
+          supabase db branch delete "$BRANCH_NAME" --org "$SUPABASE_ORG" --project-ref "$SUPABASE_PROJECT_REF" --yes || echo "⚠️ Cleanup failed but continuing..."
