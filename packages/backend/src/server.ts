@@ -1,40 +1,50 @@
-import cors from "cors";
+import "dotenv/config";
 import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import errandsRoutes from "./routes/errands";
+import authRoutes from "./routes/auth";
 
-import { errorHandler } from "./middlewares/error.middleware";
-import authRoutes from './routes/auth';
-import  errandsRoutes  from './routes/errands';
-import  paymentsRoutes  from './routes/payments';
-import { startWorkers } from "./workers";
-import { connectDB } from "./utils/db";
-import { redis } from "./config/redis";
+import { requestLogger } from "./middlewares/logger";
+import { notFound } from "./middlewares/notFound";
+import { errorHandler } from "./middlewares/errorHandler";
 
+dotenv.config();
 
-export function createServer() {
-  const app = express();
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-  app.use(cors());
-  app.use(express.json());
+app.use("/auth", authRoutes);
+app.use("/errands", errandsRoutes);
 
-  app.use("/auth", authRoutes);
-  app.use("/errands", errandsRoutes);
-  app.use("/payments", paymentsRoutes);
+// Middlewares
+app.use(requestLogger);
 
-  app.use(errorHandler);
+// Routes
+app.use("/errands", errandsRoutes);
+import { Request, Response, NextFunction } from "express";
+import { ZodSchema } from "zod";
 
-  return app;
+export const validate =
+  (schema: ZodSchema) =>
+  (req: Request, res: Response, next: NextFunction) => {
+    try {
+      schema.parse(req.body);
+      next();
+    } catch (error: any) {
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: error.errors,
+      });
+    }
+  };
+// 404 + Error Handler
+app.use(notFound);
+app.use(errorHandler);
 
-  (async () => {
-  await connectDB();
-  await startworkers();
-
-  app.listen(3000, () => {
-    console.log("ERS backend running on port 3000");
-  })
-
-await redis.set("foo", "bar");
-const value = await redis.get("foo");
-console.log(value);
-})
-} 
-
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`ERS Backend running on port ${PORT}`);
+});

@@ -1,0 +1,16 @@
+{
+  "name": "@ers/orchestrator",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "ts-node src/index.ts"
+  },
+  "dependencies": {
+    "@bull-board/api": "^5.11.0",
+    "@bull-board/express": "^5.11.0",
+    "bullmq": "^5.61.0",
+    "ioredis": "^5.4.1"
+  }
+}

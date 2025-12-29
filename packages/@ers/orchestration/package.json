@@ -1,0 +1,14 @@
+{
+  "name": "@ers/orchestration",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "bullmq": "^5.0.0",
+    "dotenv": "^16.3.1",
+    "@supabase/supabase-js": "^2.43.3"
+  }
+}

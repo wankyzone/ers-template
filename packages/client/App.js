@@ -1,20 +1,19 @@
-import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
+import React from "react";
+import { View, Text } from "react-native";
 
 export default function App() {
-	return (
-		<View style={styles.container}>
-			<Text>🚀 ERS Client App Running</Text>
-			<StatusBar style="auto" />
-		</View>
-	);
+  return (
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: "black",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Text style={{ color: "lime", fontSize: 24 }}>
+        ERS Client – It Works
+      </Text>
+    </View>
+  );
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: "#000",
-		alignItems: "center",
-		justifyContent: "center",
-	},
-});

@@ -6,37 +6,59 @@ on:
   pull_request:
 
 jobs:
-  build:
+  backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      CI: true
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v3
         with:
           version: 9
-          run_install: false
 
-      - name: Install dependencies with retry
-        run: |
-          echo "🔁 Installing dependencies with retry logic..."
-          n=0
-          until [ $n -ge 3 ]
-          do
-            pnpm install && break
-            n=$((n+1))
-            echo "Retrying ($n/3) after failure..."
-            sleep 5
-          done
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run database migrations
+        working-directory: packages/backend
+        run: pnpm db:migrate
 
       - name: Run tests
+        working-directory: packages/backend
         run: pnpm test
 
-      - name: Build backend
-        run: pnpm build
+      - name: Apply retry analytics migration
+        run: pnpm --filter backend db:migrate
+
+      - name: Build orchestrator (with retry logging)
+        run: pnpm build -F @ers/orchestrator
+
+      - name: Orchestrator retry engine smoke test
+    env:
+     REDIS_HOST: localhost
+     REDIS_PORT: 6379
+     SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+     SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    run: |
+    node -e "const { Orchestrator } = require('./packages/@ers/orchestrator/dist'); (async ()=>{ const o = new Orchestrator('test-analytics'); await o.runJob('smoke-test', { hello:'world' }, { attempts:2, backoff:{type:'exponential',delay:1000} }); console.log('ok'); process.exit(0); })()"
+  

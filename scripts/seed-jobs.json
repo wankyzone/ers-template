@@ -1,0 +1,15 @@
+[
+  {
+    "queue_name": "notifications",
+    "task_name": "notify_client",
+    "payload": {
+      "client_id": "demo-client",
+      "title": "Seed test",
+      "message": "This came from the seed replay script"
+    },
+    "options": {
+      "attempts": 3,
+      "backoff": { "type": "exponential", "delay": 2000 }
+    }
+  }
+]

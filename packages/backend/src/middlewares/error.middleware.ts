@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
+import { ZodError } from "zod";
 
 interface AppError {
 	status?: number;
@@ -21,4 +22,16 @@ export function errorHandler(
 	const message = error.message ?? "Internal server error";
 
 	res.status(status).json({ error: message });
+}
+
+export function errorHandler(err: any, _req: Request, res: Response, _next: NextFunction) {
+  if (err instanceof ZodError) {
+    return res.status(400).json({
+      error: "Validation error",
+      details: err.errors.map((e) => ({ path: e.path.join("."), message: e.message })),
+    });
+  }
+
+  console.error("Unhandled error:", err);
+  return res.status(500).json({ error: err?.message ?? "Internal server error" });
 }

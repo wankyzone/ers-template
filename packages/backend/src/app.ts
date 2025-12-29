@@ -1,13 +1,16 @@
-import dotenv from "dotenv";
 import express from "express";
+import cors from "cors";
+import errandsRoutes from "./routes/errands";
 import authRoutes from "./routes/auth";
 
-dotenv.config();
-
 const app = express();
+
+app.use(cors());
 app.use(express.json());
 
-app.get("/", (req, res) => res.send("✅ ERS Backend is running successfully!"));
 app.use("/auth", authRoutes);
+app.use("/errands", errandsRoutes);
+
+app.get("/health", (_, res) => res.json({ status: "ok" }));
 
 export default app;

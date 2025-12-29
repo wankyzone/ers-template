@@ -1,0 +1,24 @@
+{
+  "name": "@ers/orchestrator",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --dts --format cjs,esm --out-dir dist",
+    "replay:seed-jobs": "node ./scripts/replay-jobs-from-seed.mjs",
+    "orchestrator:replay-light": "pnpm --filter backend db:replay-seed -- --profile=light && pnpm --filter @ers/orchestrator replay:seed-jobs -- --profile=light",
+    "orchestrator:replay-medium": "pnpm --filter backend db:replay-seed -- --profile=medium && pnpm --filter @ers/orchestrator replay:seed-jobs -- --profile=medium",
+    "orchestrator:replay-heavy": "pnpm --filter backend db:replay-seed -- --profile=heavy && pnpm --filter @ers/orchestrator replay:seed-jobs -- --profile=heavy"
+  },
+  "dependencies": {
+    "bullmq": "^5.0.0",
+    "ioredis": "^5.4.1",
+    "@supabase/supabase-js": "^2.45.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.6.0"
+  }
+}

@@ -1,25 +1,25 @@
 {
-  "name": "ers-client",
+  "name": "ers-monorepo",
   "private": true,
   "version": "1.0.0",
-  "workspaces": [
-    "packages/backend",
-    "packages/client/packages/admin"
-  ],
   "scripts": {
-    "dev:backend": "pnpm --filter @ers/backend dev",
+    "build": "pnpm -r build",
+    "dev": "pnpm --filter backend dev",
     "dev:admin": "pnpm --filter @ers/admin dev",
-    "dev:all": "concurrently \"pnpm dev:backend\" \"pnpm dev:admin\""
+    "dev:client": "pnpm --filter @ers/client dev",
+    "dev:all": "pnpm --filter @ers/client dev:all",
+    "lint": "eslint .",
+    "healthcheck": "echo \"Running health checks...\" && pnpm -r exec tsc --noEmit && pnpm -r run lint",
+    "typecheck": "tsc --noEmit",
+    "orchestrator:replay-from-seed": "pnpm --filter backend db:replay-seed -- --profile=${PROFILE:-medium} && pnpm --filter @ers/orchestrator replay:seed-jobs -- --profile=${PROFILE:-medium}"
   },
   "devDependencies": {
-    "concurrently": "^9.0.0",
-    "cross-env": "^10.1.0",
-    "supertest": "^7.1.4",
-    "vitest": "^4.0.6",
-    "pnpm": {
-      "overrides": {
-        "ioredis": "5.8.2"
-      }
-    }
+    "@types/bcrypt": "^6.0.0",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.0.0",
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0"
   }
 }

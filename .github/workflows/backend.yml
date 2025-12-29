@@ -1,0 +1,21 @@
+services:
+  redis:
+    image: redis:7
+    ports:
+      - 6379:6379
+
+steps:
+  - name: Build Dispatch package
+    run: pnpm build -F @ers/dispatch
+
+  - name: Run API dispatch test
+    run: pnpm test -F @ers/api
+
+  - name: Run Supabase migrations (pre-orchestration)
+    run: pnpm db:migrate -F @ers/backend
+
+  - name: Build orchestration package
+    run: pnpm build -F @ers/orchestrator
+
+  - name: Run orchestration tests
+    run: pnpm test -F @ers/orchestrator
