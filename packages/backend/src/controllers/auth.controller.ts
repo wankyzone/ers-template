@@ -2,8 +2,11 @@ import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { supabase } from "../utils/supabase";
+import { supabaseAdmin } from "../utils/supabaseAdmin";
 
 export const register = async (req: Request, res: Response) => {
+  console.log("REGISTER BODY:", req.body);
+    
   const { email, password, name } = req.body;
 
   if (!email || !password) {
@@ -35,21 +38,32 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  const { data: user } = await supabase
-    .from("users")
-    .select("*")
-    .eq("email", email)
-    .single();
-
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return res.status(401).json({ error: "Invalid credentials" });
+  if (!email || !password) {
+    return res.status(400).json({
+      error: "Email and password required",
+    });
   }
 
-  const token = jwt.sign(
-    { id: user.id, email: user.email },
-    process.env.JWT_SECRET!,
-    { expiresIn: "7d" }
-  );
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
-  res.json({ token, user });
+  if (error) {
+    return res.status(401).json({
+      error: error.message,
+    });
+  }
+
+  return res.json({
+    accessToken: data.session?.access_token,
+    refreshToken: data.session?.refresh_token,
+    user: data.user,
+  });
+
+  await supabaseAdmin.from("profiles").upsert({
+    id: data.user.id,
+    email: data.user.email,
+    role: "client",
+  });
 };

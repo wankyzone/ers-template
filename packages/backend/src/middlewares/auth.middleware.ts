@@ -1,42 +1,45 @@
-import { Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
-import { AuthenticatedRequest } from "../types/auth";
+import { Request, Response, NextFunction } from "express";
+import { supabaseClient } from "../utils/supabaseClient";
+import { supabaseAdmin } from "../utils/supabaseAdmin";
 
-interface TokenPayload {
-  id: string;
-  email: string;
-  role: string;
-}
-
-export function requireAuth(
-  req: AuthenticatedRequest,
+export const requireAuth = async (
+  req: Request,
   res: Response,
   next: NextFunction
-) {
-  try {
-    const header = req.headers.authorization;
-    if (!header) {
-      return res.status(401).json({ error: "No token provided" });
-    }
+) => {
+  const authHeader = req.headers.authorization;
 
-    const [, token] = header.split(" ");
-    if (!token) {
-      return res.status(401).json({ error: "Invalid token format" });
-    }
-
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET!
-    ) as TokenPayload;
-
-    req.user = {
-      id: decoded.id,
-      email: decoded.email,
-      role: decoded.role as any,
-    };
-
-    next();
-  } catch {
-    return res.status(401).json({ error: "Unauthorized" });
+  if (!authHeader) {
+    return res.status(401).json({ error: "Missing Authorization header" });
   }
-}
+
+  const token = authHeader.replace("Bearer ", "").trim();
+
+  // 1️⃣ Verify token with ANON client
+  const { data, error } = await supabaseClient.auth.getUser(token);
+
+  if (error || !data.user) {
+    return res.status(401).json({ error: "Invalid or expired token" });
+  }
+
+  // 2️⃣ Load role from DB with SERVICE ROLE
+  const { data: profile, error: profileError } =
+    await supabaseAdmin
+      .from("users")
+      .select("id, email, role")
+      .eq("id", data.user.id)
+      .single();
+
+  if (profileError || !profile) {
+    return res.status(403).json({ error: "User profile not found" });
+  }
+
+  // 3️⃣ Attach enriched user to request
+  (req as any).user = {
+    id: profile.id,
+    email: profile.email,
+    role: profile.role,
+  };
+
+  next();
+};

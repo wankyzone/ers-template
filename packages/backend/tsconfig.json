@@ -8,12 +8,8 @@
     "esModuleInterop": true,
     "strict": false,
     "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/@types"
-    ]
+    "resolveJsonModule": true
   },
-  "include": ["src/**/*"],
+  "include": ["src"],
   "exclude": ["dist"]
 }

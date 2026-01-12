@@ -1,0 +1,20 @@
+import { Request } from "express";
+import { UserRole } from "./users";
+
+export interface AuthenticatedUser {
+  id: string;
+  email: string;
+  role: UserRole;
+}
+
+export interface AuthenticatedRequest extends Request {
+  user: AuthenticatedUser;
+}
+
+export interface AuthenticatedRequest extends Request {
+  user: {
+    id: string;
+    email: string;
+    role: UserRole;
+  };
+}

@@ -1,63 +1,184 @@
-import { Request, Response } from "express";
-import { supabase } from "../lib/supabase";
+import { RequestHandler, Response } from "express";
+import { supabase } from "../config/supabase";
+import { supabaseAdmin } from "../utils/supabaseAdmin";
+import { AuthenticatedRequest } from "../types/authenticated-request";
+import { assertValidTransition } from "../domain/errandGuards";
 
-export const createErrand = async (req: Request, res: Response) => {
-  const { title, description, pickup_location, dropoff_location, amount } =
-    req.body;
+/**
+ * CLIENT — create errand
+ */
+export const createErrand: RequestHandler = async (req, res) => {
+  const authReq = req as AuthenticatedRequest;
+  const { title, description } = req.body;
 
-  const { data, error } = await supabase.from("errands").insert([
-    {
-      client_id: (req as any).user.id,
+  if (!title) {
+    return res.status(400).json({ error: "Title is required" });
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from("errands")
+    .insert({
+      client_id: authReq.user.id,
       title,
       description,
-      pickup_location,
-      dropoff_location,
-      amount,
-    },
-  ]);
+      status: "pending",
+    })
+    .select()
+    .single();
 
-  if (error) return res.status(400).json({ error: error.message });
-  return res.json({ success: true });
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  res.status(201).json({
+    message: "Errand created",
+    errand: data,
+  });
 };
 
-export const listErrands = async (_req: Request, res: Response) => {
+/**
+ * RUNNER — accept errand
+ */
+export const acceptErrand: RequestHandler = async (req, res) => {
+  const authReq = req as AuthenticatedRequest;
+  const { id } = req.params;
+
+  const { data: errand } = await supabase
+    .from("errands")
+    .select("status")
+    .eq("id", id)
+    .single();
+
+  if (!errand) {
+    return res.status(404).json({ error: "Errand not found" });
+  }
+
+  assertValidTransition(errand.status, "accepted");
+
   const { data, error } = await supabase
     .from("errands")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) return res.status(400).json({ error: error.message });
-  return res.json(data);
-};
-
-export const acceptErrand = async (req: Request, res: Response) => {
-  const { id } = req.params;
-
-  const { error } = await supabase
-    .from("errands")
     .update({
-      runner_id: (req as any).user.id,
       status: "accepted",
-      accepted_at: new Date(),
+      runner_id: authReq.user.id,
     })
     .eq("id", id)
-    .eq("status", "pending");
+    .eq("status", "pending")
+    .select()
+    .single();
 
-  if (error) return res.status(400).json({ error: error.message });
-  return res.json({ success: true });
+  if (error || !data) {
+    return res.status(400).json({ error: "Cannot accept errand" });
+  }
+
+  res.json(data);
 };
 
-export const completeErrand = async (req: Request, res: Response) => {
+/**
+ * RUNNER — start errand
+ */
+export async function startErrand(
+  req: AuthenticatedRequest,
+  res: Response
+) {
   const { id } = req.params;
 
-  const { error } = await supabase
+  const { data: errand } = await supabase
     .from("errands")
-    .update({
-      status: "completed",
-      completed_at: new Date(),
-    })
-    .eq("id", id);
+    .select("status, runner_id")
+    .eq("id", id)
+    .single();
 
-  if (error) return res.status(400).json({ error: error.message });
-  return res.json({ success: true });
+  if (!errand) {
+    return res.status(404).json({ error: "Errand not found" });
+  }
+
+  if (errand.runner_id !== req.user!.id) {
+    return res.status(403).json({ error: "Not your errand" });
+  }
+
+  assertValidTransition(errand.status, "in_progress");
+
+  const { data, error } = await supabase
+    .from("errands")
+    .update({ status: "in_progress" })
+    .eq("id", id)
+    .eq("runner_id", req.user!.id)
+    .eq("status", "accepted")
+    .select()
+    .single();
+
+  if (error || !data) {
+    return res.status(400).json({ error: "Cannot start errand" });
+  }
+
+  res.json(data);
+}
+
+/**
+ * RUNNER — complete errand
+ */
+export async function completeErrand(
+  req: AuthenticatedRequest,
+  res: Response
+) {
+  const { id } = req.params;
+
+  const { data: errand } = await supabase
+    .from("errands")
+    .select("status, runner_id")
+    .eq("id", id)
+    .single();
+
+  if (!errand) {
+    return res.status(404).json({ error: "Errand not found" });
+  }
+
+  if (errand.runner_id !== req.user!.id) {
+    return res.status(403).json({ error: "Not your errand" });
+  }
+
+  assertValidTransition(errand.status, "completed");
+
+  const { data, error } = await supabase
+    .from("errands")
+    .update({ status: "completed" })
+    .eq("id", id)
+    .eq("runner_id", req.user!.id)
+    .eq("status", "in_progress")
+    .select()
+    .single();
+
+  if (error || !data) {
+    return res.status(400).json({ error: "Cannot complete errand" });
+  }
+
+  res.json(data);
+}
+
+export const getClientErrands: RequestHandler = async (req, res) => {
+  const authReq = req as AuthenticatedRequest;
+
+  const { data, error } = await supabase
+    .from("errands")
+    .select(
+      `
+        id,
+        title,
+        description,
+        status,
+        price,
+        created_at,
+        runner_id
+      `
+    )
+    .eq("client_id", authReq.user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+
+  res.json({
+    errands: data,
+  });
 };
