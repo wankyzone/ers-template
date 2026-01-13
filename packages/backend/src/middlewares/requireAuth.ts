@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { supabaseClient } from "../utils/supabaseClient";
+import { supabaseClient } from "../config/supabaseClient";
 
 export const requireAuth = async (
   req: Request,

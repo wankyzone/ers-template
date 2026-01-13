@@ -1,4 +1,3 @@
-// src/schemas/errand.schema.ts
 import { z } from "zod";
 
 export const locationSchema = z.object({
@@ -37,4 +36,8 @@ export const updateErrandSchema = z.object({
     .enum(["pending", "accepted", "in_progress", "completed", "cancelled"])
     .optional(),
   location: locationSchema.optional(),
+});
+
+export const updateErrandParamsSchema = z.object({
+  id: z.string().uuid(),
 });

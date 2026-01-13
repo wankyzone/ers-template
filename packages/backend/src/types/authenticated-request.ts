@@ -10,11 +10,3 @@ export interface AuthenticatedUser {
 export interface AuthenticatedRequest extends Request {
   user: AuthenticatedUser;
 }
-
-export interface AuthenticatedRequest extends Request {
-  user: {
-    id: string;
-    email: string;
-    role: UserRole;
-  };
-}
