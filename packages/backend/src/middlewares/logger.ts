@@ -12,3 +12,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
 
   next();
 };
+
+await supabase.from("job_logs").insert([
+  { job_name: jobName, status, meta, created_at: new Date().toISOString() }
+] as any);

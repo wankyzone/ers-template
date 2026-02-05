@@ -1,12 +1,13 @@
-import { User as SupabaseUser } from "@supabase/supabase-js";
-import "express";
+import "express-serve-static-core";
 
 declare module "express-serve-static-core" {
   interface Request {
     user?: {
       id: string;
-      email: string;
-      role?: string;
+      role: "client" | "runner" | "admin";
+      email?: string;
     };
   }
 }
+
+export {};

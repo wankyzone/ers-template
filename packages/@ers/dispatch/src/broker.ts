@@ -1,4 +1,4 @@
-import { Queue, QueueScheduler } from "bullmq";
+import { Queue, QueueEvents } from "bullmq";
 import { redisConnection } from "@ers/redis";
 import { resolveServiceQueue } from "./registry";
 
@@ -8,7 +8,7 @@ export class DispatchBroker {
   constructor(private service: string) {
     const queueName = resolveServiceQueue(service);
     this.queue = new Queue(queueName, { connection: redisConnection });
-    new QueueScheduler(queueName, { connection: redisConnection });
+    new QueueEvents(queueName, { connection: redisConnection });
   }
 
   async dispatch(jobName: string, payload: any, opts = {}) {

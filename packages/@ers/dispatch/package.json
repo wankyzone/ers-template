@@ -8,6 +8,6 @@
   },
   "dependencies": {
     "bullmq": "^5.61.0",
-    "@ers/redis": "^1.0.0"
+    "@ers/redis": "workspace:*"
   }
 }

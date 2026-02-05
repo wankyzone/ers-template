@@ -1,13 +1,11 @@
-export {};
+import type { AuthenticatedUser } from "./users";
 
 declare global {
   namespace Express {
     interface Request {
-      user?: {
-        id: string;
-        email: string;
-        role: "admin" | "runner" | "client";
-      };
+      user?: AuthenticatedUser;
     }
   }
 }
+
+export {};

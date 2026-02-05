@@ -1,4 +1,4 @@
-import { supabase } from "../config/supabase";
+import { supabase } from "../supabase";
 import { supabaseAdmin } from "../config/supabaseAdmin";
 import { assertValidTransition } from "../domain/errandGuards";
 import { logAuditEvent } from "./audit.service";
@@ -193,5 +193,15 @@ export async function getClientErrandsService(clientId: string) {
     throw new AppError("Failed to fetch errands", 500);
   }
 
+  return data;
+}
+
+export async function getAvailableErrandsForRunnerService(runnerId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("errands")
+    .select("*")
+    .eq("status", "created");
+
+  if (error) throw error;
   return data;
 }

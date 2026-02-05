@@ -2,23 +2,26 @@ import { Router } from "express";
 import { requireAuth } from "../middlewares/auth";
 import { requireRole } from "../middlewares/requireRole";
 import { validate } from "../middlewares/validate";
+
 import {
   createErrand,
-  getClientErrands
-} from "../controllers/errands.controller";
-import {
+  getClientErrands,
   acceptErrand,
   startErrand,
   completeErrand,
 } from "../controllers/errands.controller";
+
+import { getAvailableErrandsForRunner } from "../controllers/errands.controller";
+
 import {
   createErrandSchema,
   updateErrandParamsSchema,
-} from "../schemas/errand.schema"
-
+} from "../schemas/errand.schema";
+import { getAvailableErrandsForRunnerService } from "../services/errand.service";
 
 const router = Router();
 
+/* CLIENT */
 router.post(
   "/",
   requireAuth,
@@ -32,6 +35,12 @@ router.get(
   requireAuth,
   requireRole("client"),
   getClientErrands
+);
+
+/* RUNNER */
+router.get(
+  "/available",
+  getAvailableErrandsForRunner
 );
 
 router.post(
@@ -56,8 +65,20 @@ router.post(
   completeErrand
 );
 
+router.get("/available", async (req, res, next) => {
+  try {
+    const runnerId = req.get("x-runner-id");
+    if (!runnerId) {
+      return res.status(400).json({ error: "x-runner-id required" });
+    }
 
-requireRole("admin")
+    const errands = await getAvailableErrandsForRunnerService(runnerId);
+    res.json({ errands });
+  } catch (err) {
+    next(err);
+  }
+});
 
+router.post("/", requireAuth, requireRole("client"), createErrand);
 
 export default router;

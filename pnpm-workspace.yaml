@@ -1,4 +1,12 @@
 packages:
-  - "apps/*"
-  - "packages/*"
-  - "packages/@ers/*"
+  - apps/*
+  - packages/*
+  - packages/@ers/*
+
+ignoredBuiltDependencies:
+  - '@biomejs/biome'
+
+onlyBuiltDependencies:
+  - bcrypt
+  - esbuild
+  - msgpackr-extract

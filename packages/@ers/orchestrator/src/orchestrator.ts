@@ -1,4 +1,4 @@
-import { Queue, QueueScheduler, JobOptions, QueueEvents } from "bullmq";
+import { Queue, QueueEvents, JobsOptions } from "bullmq";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 import { logJobEvent } from "./logger";
@@ -18,7 +18,6 @@ type DispatchOptions = {
 
 export class Orchestrator {
   private queue: Queue;
-  private scheduler: QueueScheduler;
   private events: QueueEvents;
   supabase: ReturnType<typeof createClient>;
   queueName: string;
@@ -26,7 +25,6 @@ export class Orchestrator {
   constructor(queueName: string) {
     this.queueName = queueName;
     this.queue = new Queue(queueName, { connection: { host: process.env.REDIS_HOST || '127.0.0.1', port: +(process.env.REDIS_PORT || 6379) } });
-    this.scheduler = new QueueScheduler(queueName, { connection: { host: process.env.REDIS_HOST || '127.0.0.1', port: +(process.env.REDIS_PORT || 6379) } });
     this.events = new QueueEvents(queueName, { connection: { host: process.env.REDIS_HOST || '127.0.0.1', port: +(process.env.REDIS_PORT || 6379) } });
     this.supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
