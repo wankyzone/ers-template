@@ -1,18 +1,26 @@
-import { Request, Response, NextFunction } from "express";
+import type { RequestHandler } from "express";
 
-export const requestLogger = (req: Request, res: Response, next: NextFunction) => {
+/**
+ * Simple HTTP request logger middleware.
+ * Logs method, url, statusCode, duration, ip.
+ */
+export const requestLogger: RequestHandler = (req, res, next) => {
   const start = Date.now();
 
   res.on("finish", () => {
-    const duration = Date.now() - start;
+    const ms = Date.now() - start;
+    const method = req.method;
+    const url = req.originalUrl ?? req.url;
+    const status = res.statusCode;
+    const ip =
+      (req.headers["x-forwarded-for"] as string) ||
+      req.socket.remoteAddress ||
+      "unknown";
+
     console.log(
-      `[${req.method}] ${req.originalUrl} - ${res.statusCode} (${duration}ms)`
+      `[${new Date().toISOString()}] ${method} ${url} ${status} - ${ms}ms - ${ip}`
     );
   });
 
   next();
 };
-
-await supabase.from("job_logs").insert([
-  { job_name: jobName, status, meta, created_at: new Date().toISOString() }
-] as any);

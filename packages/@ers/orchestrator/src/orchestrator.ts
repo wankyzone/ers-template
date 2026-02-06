@@ -40,7 +40,7 @@ export class Orchestrator {
   }
 
   // standardize bullmq JobOptions from our DispatchOptions
-  private toJobOptions(opts?: DispatchOptions): JobOptions {
+  private toJobOptions(opts?: DispatchOptions): JobsOptions {
     const attempts = opts?.attempts ?? 3;
     const backoff = opts?.backoff
       ? opts.backoff.type === 'exponential'

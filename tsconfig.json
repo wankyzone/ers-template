@@ -1,21 +1,10 @@
 {
-  "compilerOptions": {
-    "target": "ESNEXT",
-    "module": "ESNEXT",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "moduleResolution": "node",
-    "outDir": "dist",
-    "baseUrl": ".",
-    "paths": {
-        "@ers/db": ["packages/db/src"],
-        "@ers/db/*": ["packages/db/src/*"],
-        "@ers/auth": ["apps/auth/src"],
-        "@ers/auth/*": ["apps/auth/src/*"] 
-    }
-  },
-  "include": ["packages", "apps"]
+  "files": [],
+  "references": [
+    { "path": "packages/backend" },
+    { "path": "apps/admin" },
+    { "path": "packages/@ers/redis" },
+    { "path": "packages/@ers/dispatch" },
+    { "path": "packages/@ers/orchestrator" }
+  ]
 }

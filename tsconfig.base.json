@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "CommonJS",
+    "target": "ESNEXT",
+    "module": "ESNEXT",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
@@ -10,11 +10,10 @@
     "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
-      "@ers/db": ["packages/db/src/index.ts"],
+      "@ers/db": ["packages/db/src"],
       "@ers/db/*": ["packages/db/src/*"],
-      "@ers/auth": ["apps/api/auth/src/index.ts"],
-      "@ers/auth/*": ["apps/api/auth/src/*"]
+      "@ers/auth": ["apps/auth/src"],
+      "@ers/auth/*": ["apps/auth/src/*"]
     }
-  },
-  "include": ["apps", "packages"]
+  }
 }

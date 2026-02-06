@@ -1,4 +1,5 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2020",
     "module": "commonjs",
@@ -12,5 +13,7 @@
       "./node_modules/@types"
     ]
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "supabase/functions/**", "supabase/fuctions/**", "__tests__/**"]
+
 }

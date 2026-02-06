@@ -9,8 +9,8 @@
     "dev:client": "pnpm --filter @ers/client dev",
     "dev:all": "pnpm --filter @ers/client dev:all",
     "lint": "eslint .",
-    "healthcheck": "echo \"Running health checks...\" && pnpm -r exec tsc --noEmit && pnpm -r run lint",
-    "typecheck": "tsc --noEmit",
+    "healthcheck": "echo \"Running health checks...\" && pnpm typecheck && pnpm -r run lint",
+    "typecheck": "pnpm --filter backend exec tsc --noEmit && pnpm --filter @ers/admin exec tsc --noEmit",
     "orchestrator:replay-from-seed": "pnpm --filter backend db:replay-seed -- --profile=${PROFILE:-medium} && pnpm --filter @ers/orchestrator replay:seed-jobs -- --profile=${PROFILE:-medium}"
   },
   "devDependencies": {
@@ -21,5 +21,12 @@
   },
   "dependencies": {
     "bcrypt": "^6.0.0"
+  },
+  "pnpm": {
+  "overrides": {
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0"
   }
+}
+
 }

@@ -1,4 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
+import { enqueueJob } from "./jobs";
+import { handleDLQ } from "./dlq";
+
 
 const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
@@ -41,7 +44,7 @@ export async function handleFailedJob(job: any, config: AutoRerunConfig) {
       error_message: job.error_message ?? 'max retries exceeded',
     }]);
 
-    await moveToDLQ(job);
+    await handleDLQ(supabase as any, job.queue_name, String(job.id), job.error_message ?? "max retries exceeded");
   }
 }
 
