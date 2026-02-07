@@ -1,0 +1,21 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
+const auth_1 = __importDefault(require("./routes/auth"));
+const errands_1 = __importDefault(require("./routes/errands"));
+const errorHandler_1 = require("./middlewares/errorHandler");
+const logger_1 = require("./middlewares/logger");
+const app = (0, express_1.default)();
+app.use(logger_1.requestLogger);
+app.use((0, cors_1.default)());
+app.use(express_1.default.json());
+app.use(express_1.default.urlencoded({ extended: true }));
+app.get("/health", (_, res) => res.json({ status: "ok" }));
+app.use("/auth", auth_1.default);
+app.use("/errands", errands_1.default);
+app.use(errorHandler_1.errorHandler);
+exports.default = app;
