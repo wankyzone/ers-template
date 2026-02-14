@@ -1,8 +1,13 @@
+"use client";
+
 import { useEffect } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 
 export function useRealtimeRetryUpdates(onChange: (payload: any) => void) {
   useEffect(() => {
+    const supabase = getSupabaseClient();
+    if (!supabase) return;
+
     const channel = supabase
       .channel("retry-updates")
       .on(
@@ -17,10 +22,8 @@ export function useRealtimeRetryUpdates(onChange: (payload: any) => void) {
       )
       .subscribe();
 
-    // ✅ cleanup MUST be sync (no async/await)
     return () => {
       supabase.removeChannel(channel);
     };
   }, [onChange]);
 }
-
