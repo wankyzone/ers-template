@@ -1,7 +1,8 @@
 # Node & dependencies
 node_modules/
-dist/
+dist
 build/
+*.js
 
 # Environment
 .env

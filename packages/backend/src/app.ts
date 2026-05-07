@@ -1,22 +1,39 @@
-import express from "express";
-import cors from "cors";
+import express, { type ErrorRequestHandler } from "express";
+import morgan from "morgan";
+import taskRoutes from "./routes/tasks";
 
-import authRoutes from "./routes/auth";
-import errandsRoutes from "./routes/errands";
-import { errorHandler } from "./middlewares/errorHandler";
-import { requestLogger } from "./middlewares/logger";
+export function createApp() {
+  const app = express();
 
-const app = express();
+  app.use(morgan("dev"));
+  app.use(express.json());
 
-app.use(requestLogger);
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+  app.get("/", (_req, res) => {
+    res.send("ERS backend is live");
+  });
 
-app.get("/health", (_, res) => res.json({ status: "ok" }));
+  app.get("/ping", (_req, res) => {
+    res.json({ message: "pong" });
+  });
 
-app.use("/auth", authRoutes);
-app.use("/errands", errandsRoutes);
-app.use(errorHandler);
+  app.use("/tasks", taskRoutes);
 
-export default app;
+  const errorHandler: ErrorRequestHandler = (err, _req, res, next) => {
+    console.error(err);
+
+    if (res.headersSent) {
+      return next(err);
+    }
+
+    res.status(500).json({
+      success: false,
+      error: "Internal server error",
+    });
+  };
+
+  app.use(errorHandler);
+
+  return app;
+}
+
+export default createApp;

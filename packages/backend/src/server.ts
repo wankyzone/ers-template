@@ -1,7 +1,8 @@
 import "dotenv/config";
-import app from "./app";
+import createApp from "./app";
 
 const PORT = process.env.PORT || 4000;
+const app = createApp();
 
 app.listen(PORT, () => {
   console.log(`ERS Backend running on port ${PORT}`);
