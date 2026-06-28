@@ -29,12 +29,17 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-web-browser",
+      "@rnmapbox/maps"
     ],
     "extra": {
       "eas": {
         "projectId": "3f42dc81-a73b-4dee-97b8-f58ae8019649"
       }
+    },
+    "updates": {
+      "enabled": false
     }
   }
 }

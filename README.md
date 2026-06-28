@@ -1,70 +1,126 @@
-## What is ERS?
+# 🚀 ERS Template
 
-ERS (Errand Runners System) is an on-demand platform that lets people
-outsource everyday tasks to nearby runners — safely, transparently,
+> Production-ready starter kit for building **on-demand errand & logistics platforms** (Africa-first 🌍)
+
+ERS is a real-world system for outsourcing everyday tasks to nearby runners — designed with **production constraints, scalability, and system correctness in mind**.
+
+---
+
+## ⚡ What is ERS?
+
+ERS (Errand Runners System) is an on-demand platform that allows people  
+to outsource everyday tasks to nearby runners — safely, transparently,  
 and without upfront payment.
 
-Think: “Uber, but for errands.”
+**Think: Uber, but for errands.**
 
-## How ERS Works
+---
 
-1. A client creates an errand (pickup, delivery, task).
-2. Nearby runners see the errand and accept it.
-3. The runner completes the task.
-4. Payment is captured after completion.
-5. Admins monitor activity, payouts, and disputes in real time.
+## 🔄 How ERS Works
 
-## Who ERS Is For
+1. Client creates an errand
+2. Nearby runners receive and accept it
+3. Runner completes the task
+4. Payment is captured after completion
+5. Admin monitors operations in real time
+
+---
+
+## 🎯 Who ERS Is For
 
 - **Busy individuals** who need errands handled fast
 - **Runners** looking to earn flexibly
 - **Operations teams** managing logistics at scale
 
-## Why ERS Exists
+---
 
-Urban life is busy. Small tasks waste time.
-ERS turns idle movement into useful work.
+## 🧠 Philosophy
 
-## Engineering Overview (For Developers)
+ERS is built with a strong emphasis on **real-world system design**.
 
-ERS is built as a modular monorepo with:
-- A Node.js backend (Express)
-- Supabase for data and realtime
-- JWT-based authentication
-- Role-based access control
+### What ERS Is
+
+- A real logistics platform — not a toy app
+- Designed for dense urban environments (e.g. Lagos)
+- Built with real constraints: payments, retries, monitoring
+- Infrastructure-first: auth, roles, lifecycle states, observability
+- Actively built in public with production realism
+
+### What ERS Isn’t
+
+- ❌ Not a demo or tutorial project
+- ❌ Not UI-first with weak backend logic
+- ❌ Not a clone built for hype
+- ❌ Not a finished product (yet)
+- ❌ Not optimized for shortcuts over correctness
+
+ERS prioritizes **reliability, correctness, and long-term scalability**.
+
+---
+
+## 🧩 Project Structure
+
+```bash
+ers-template/
+│
+├── apps/              # Core applications
+│   ├── mobile/        # Expo app (client + runner)
+│   ├── admin/         # Next.js dashboard
+│   └── api/           # Express + Supabase backend
+│
+├── examples/          # Feature-based demos
+├── templates/         # Reusable scaffolds
+├── packages/          # Shared logic (UI, types, config)
+├── scripts/           # Automation scripts
+├── docs/              # Architecture + system design
+
+🧪 Examples
+
+Each example represents a standalone feature module.
+
+Example	Description
+errand-create	Create and assign errands
+real-time-tracking	Live runner tracking
+vendor-delivery	Vendors deliver directly to clients
+notifications	Push + retry system
+
+⚙️ Generate an Example
+pnpm run generate vendor-delivery
+
+🚀 Getting Started
+pnpm install
+pnpm dev
+
+⚙️ Engineering Overview
+
+ERS is built as a modular monorepo:
+
+Backend: Node.js (Express)
+Database & Realtime: Supabase
+Auth: JWT-based authentication
+Access Control: Role-based system
+Architecture
 
 Client App → Backend → Runner App
-                 ↓
-              Admin Dashboard
+↓
+Admin Dashboard
 
-What ERS Is
+🌍 Vision
 
-ERS (Errand Runners System) is a real-world logistics platform designed to help people outsource everyday tasks to nearby runners—reliably and transparently.
+ERS is not just an app.
 
-A task execution platform, not just a delivery app
+It is infrastructure for building:
 
-Built for dense urban environments like Lagos
+Logistics startups
+Delivery systems
+On-demand service platforms
+🤝 Contributing
 
-Designed with real operational constraints in mind (payments, retries, monitoring, admin oversight)
+PRs are welcome. Keep contributions modular, scalable, and production-ready.
 
-Infrastructure-first: auth, roles, lifecycle states, observability come before polish
+📄 License
 
-Actively being built and shipped in public, with production realism
+MIT
 
-In short: ERS turns everyday errands into a structured, trackable system.
-
-What ERS Isn’t
-
-ERS is intentionally not:
-
-❌ A demo app or tutorial project
-
-❌ A UI-first prototype with no backend depth
-
-❌ A “clone” built for hype or pitch decks
-
-❌ A finished consumer product (yet)
-
-❌ Optimized for growth hacks over system correctness
-
-ERS prioritizes correctness, reliability, and learning-by-building over shortcuts.
+---
+```

@@ -1,18 +1,20 @@
-import { Text, View } from "react-native";
+import React from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+ 
+// ─── PATH FIX ────────────────────────────────────────────────────────────────
+// App.tsx is at PROJECT ROOT → must include 'src/' prefix for src/ files
+import { AuthProvider } from './src/context/AuthContext';
+import RootNavigator from './src/navigation/RootNavigator';
 
 export default function App() {
   return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#0f172a",
-      }}
-    >
-      <Text style={{ color: "#22c55e", fontSize: 22, fontWeight: "600" }}>
-        ERS Mobile is live 🚀
-      </Text>
-    </View>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <RootNavigator />
+        </AuthProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
